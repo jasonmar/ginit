@@ -1,0 +1,16 @@
+.idea
+*.iml
+*.ipr
+*.iws
+.project
+project/project
+target
+*.DS_Store
+*.gz
+*.log
+*.swp
+*.json
+*.pb
+*.conf
+*.xml
+logs/*
