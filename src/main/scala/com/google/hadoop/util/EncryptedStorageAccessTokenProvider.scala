@@ -14,16 +14,16 @@
  *    limitations under the License.
  */
 
-package com.google.cloud.ginit
+package com.google.hadoop.util
 
-
+import com.google.cloud.ginit.Util
 import com.google.cloud.hadoop.util.AccessTokenProvider
-import com.google.cloud.storage.BlobId
+import com.google.cloud.storage.{BlobId, EncryptedStorage}
 import com.google.common.collect.ImmutableList
 import org.apache.hadoop.conf.Configuration
 
 object EncryptedStorageAccessTokenProvider {
-  val ClassName: String = "com.google.cloud.ginit.EncryptedStorageAccessTokenProvider"
+  val ClassName: String = "com.google.cloud.hadoop.util.EncryptedStorageAccessTokenProvider"
   val GInitAccessTokenUri = "fs.gs.auth.access.token.uri"
   val CloudKMSScope: ImmutableList[String] = ImmutableList.of("https://www.googleapis.com/auth/cloudkms")
 

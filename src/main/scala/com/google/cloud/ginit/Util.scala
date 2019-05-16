@@ -28,6 +28,7 @@ import com.google.common.base.Charsets
 import com.google.common.hash.Hashing
 import com.google.common.io.BaseEncoding
 import com.google.protobuf.ByteString
+import org.apache.log4j.{Level, Logger}
 
 object Util {
   def parseUri(gsUri: String): Option[BlobId] = {
@@ -99,4 +100,36 @@ object Util {
 
   def b64(byteString: ByteString): String =
     b64(byteString.toByteArray)
+
+
+  val layout = new org.apache.log4j.PatternLayout("%d{ISO8601} [%t] %-5p %c %x - %m%n")
+  val consoleAppender = new org.apache.log4j.ConsoleAppender(layout)
+
+  trait Logging {
+    @transient
+    protected lazy val logger: Logger = newLogger(this.getClass.getCanonicalName.stripSuffix("$"))
+  }
+
+  trait DebugLogging {
+    @transient
+    protected lazy val logger: Logger = newDebugLogger(this.getClass.getCanonicalName.stripSuffix("$"))
+  }
+
+  def newLogger(name: String, level: Level = Level.INFO): org.apache.log4j.Logger = {
+    val logger = org.apache.log4j.Logger.getLogger(name)
+    logger.setLevel(level)
+    logger
+  }
+
+  def newDebugLogger(name: String): org.apache.log4j.Logger =
+    newLogger(name, Level.DEBUG)
+
+  def configureLogging(): Unit = {
+    import org.apache.log4j.Level.{DEBUG, WARN, ERROR}
+    import org.apache.log4j.Logger.{getLogger, getRootLogger}
+    getRootLogger.setLevel(WARN)
+    getRootLogger.addAppender(consoleAppender)
+    getLogger("com.google.cloud.ginit").setLevel(DEBUG)
+    getLogger("com.google.hadoop.util").setLevel(DEBUG)
+  }
 }

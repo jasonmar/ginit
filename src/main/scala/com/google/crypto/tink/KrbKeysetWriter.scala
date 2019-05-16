@@ -14,10 +14,10 @@
  *    limitations under the License.
  */
 
-package com.google.cloud.ginit
+package com.google.crypto.tink
 
-import com.google.crypto.tink.KeysetWriter
 import com.google.crypto.tink.proto.{EncryptedKeyset, Keyset}
+import com.google.hadoop.util.KrbAccessTokenProvider
 import org.apache.hadoop.conf.Configuration
 
 /** Writes an EncryptedKeyset to Hadoop Configuration
@@ -30,5 +30,5 @@ class KrbKeysetWriter(conf: Configuration) extends KeysetWriter {
 
   override def write(keyset: EncryptedKeyset): Unit =
     conf.set(KrbAccessTokenProvider.KrbKeyFileCipherText,
-      Util.b64(keyset.getEncryptedKeyset))
+      com.google.cloud.ginit.Util.b64(keyset.getEncryptedKeyset))
 }

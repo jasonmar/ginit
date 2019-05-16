@@ -14,8 +14,9 @@
  *    limitations under the License.
  */
 
-package com.google.cloud.ginit
+package com.google.hadoop.util
 
+import com.google.cloud.ginit.KrbUtil
 import com.google.cloud.hadoop.util.AccessTokenProvider
 import com.google.common.base.Charsets
 import com.google.common.io.BaseEncoding
@@ -23,7 +24,7 @@ import com.google.crypto.tink.Aead
 import org.apache.hadoop.conf.Configuration
 
 object KrbAccessTokenProvider {
-  val ClassName: String = "com.google.cloud.ginit.KrbAccessTokenProvider"
+  val ClassName: String = "com.google.cloud.hadoop.util.KrbAccessTokenProvider"
   val KrbKeyFileCipherText = "fs.gs.auth.krb.keyfile.ciphertext"
   val KrbPrincipal = "fs.gs.auth.krb.principal"
   val KrbKeyTabPath = "fs.gs.auth.krb.keytab"

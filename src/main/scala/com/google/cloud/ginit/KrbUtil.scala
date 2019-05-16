@@ -19,17 +19,20 @@ package com.google.cloud.ginit
 import java.security.PublicKey
 import java.util
 
+import com.google.cloud.ginit.Util.Logging
+import com.google.common.hash.Hashing
 import com.google.crypto.tink.aead.AeadFactory
-import com.google.crypto.tink.{Aead, CleartextKeysetHandle}
+import com.google.crypto.tink.{Aead, CleartextKeysetHandle, KrbKeysetReader}
 import javax.crypto.SecretKey
 import javax.security.auth.Subject
 import javax.security.auth.kerberos.{KerberosKey, KerberosPrincipal, KerberosTicket, KeyTab}
 import javax.security.auth.login.{AppConfigurationEntry, Configuration, LoginContext}
+import org.zeromq.codec.Z85
 
 import scala.collection.JavaConverters.asScalaIteratorConverter
 import scala.collection.mutable.ListBuffer
 
-object KrbUtil {
+object KrbUtil extends Logging {
   /** Initializes a cryptographic primitive using Keyset
     * loaded from Kerberos KeyTab
     *
@@ -42,8 +45,8 @@ object KrbUtil {
     AeadFactory.getPrimitive(CleartextKeysetHandle.read(reader))
   }
 
-  def getSubject(principal: String, keyTabPath: String): Subject = {
-    val config = getConfiguration(principal, keyTabPath)
+  def getSubject(principal: String, keyTabPath: String, cache: Option[String] = None): Subject = {
+    val config = getConfiguration(principal, keyTabPath, cache)
     val loginContext = new LoginContext("", new Subject, null, config)
     loginContext.login()
     loginContext.getSubject
@@ -108,38 +111,38 @@ object KrbUtil {
     */
   def analyzeSubject(subject: Subject): Unit = {
     getKerberosPrincipals(subject).foreach{p =>
-      System.out.println(printKerberosPrincipal(p))
+      logger.info(printKerberosPrincipal(p))
 
-      System.out.println("Public Credentials:")
+      logger.info("Public Credentials:")
       subject.getPublicCredentials()
         .iterator().asScala.foreach{
         case x: KerberosKey =>
-          System.out.println(printKerberosKey(x))
+          logger.info(printKerberosKey(x))
         case x: PublicKey =>
-          System.out.println(printPublicKey(x))
+          logger.info(printPublicKey(x))
         case x =>
-          System.out.println(s"""Unrecognized Public Credential type: ${x.getClass.getCanonicalName.stripSuffix("$")}""")
+          logger.info(s"""Unrecognized Public Credential type: ${x.getClass.getCanonicalName.stripSuffix("$")}""")
       }
 
-      System.out.println("Private Credentials:")
+      logger.info("Private Credentials:")
       val priv = getPrivateCredentials(subject)
 
       // KeyTab
       priv.keyTabs.foreach { x =>
-        System.out.println("KeyTab:")
+        logger.info("KeyTab:")
         x.getKeys(p).foreach { k =>
-          System.out.println(printKerberosKey(k))
+          logger.info(printKerberosKey(k))
         }
       }
 
       // KerberoKey
       priv.kerberosKeys.foreach { x =>
-        System.out.println(printKerberosKey(x))
+        logger.info(printKerberosKey(x))
       }
 
       // KerberosTicket
       priv.kerberosTickets.foreach { x =>
-        System.out.println(printKerberosTicket(x))
+        logger.info(printKerberosTicket(x))
       }
     }
   }
@@ -151,7 +154,7 @@ object KrbUtil {
        |  realm: ${principal.getRealm}""".stripMargin
 
   def printPublicKey(key: PublicKey): String =
-    s"""PublicKey(algorithm = "${key.getAlgorithm}", format = "${key.getFormat}")""".stripMargin
+    s"""PublicKey(algorithm = "${key.getAlgorithm}", format = "${key.getFormat}", length = ${key.getEncoded.length}, z85 = ${z85sha256(key.getEncoded)})""".stripMargin
 
   def printKerberosKey(k: KerberosKey): String =
     s"""KerberosKey:
@@ -160,7 +163,16 @@ object KrbUtil {
        |  version:   ${k.getVersionNumber}
        |  algorithm: ${k.getAlgorithm}
        |  format:    ${k.getFormat}
-       |  bytes:     ${k.getEncoded.length}""".stripMargin
+       |  length:    ${k.getEncoded.length}
+       |  z85sha256: ${z85sha256(k.getEncoded)}""".stripMargin
+
+  def z85(a: Array[Byte], n: Int = 6): String =
+    Z85.Z85Encoder(a).take(n) + "..."
+
+  def z85sha256(a: Array[Byte]): String = {
+    val hash = Hashing.sha256().hashBytes(a).asBytes()
+    Z85.Z85Encoder(hash)
+  }
 
   def printKerberosTicket(x: KerberosTicket): String =
     s"""KerberosTicket:
@@ -174,9 +186,9 @@ object KrbUtil {
        |  sessionKey:     ${printSecretKey(x.getSessionKey)}""".stripMargin
 
   def printSecretKey(k: SecretKey): String =
-    s"""SecretKey(algorithm = ${k.getAlgorithm}, format = ${k.getFormat})""".stripMargin
+    s"""SecretKey(algorithm = ${k.getAlgorithm}, format = ${k.getFormat}, length = ${k.getEncoded.length}, z85 = ${z85sha256(k.getEncoded)})""".stripMargin
 
-  def getConfiguration(principal: String, keyTabPath: String): Configuration = {
+  def getConfiguration(principal: String, keyTabPath: String, cache: Option[String]): Configuration = {
     new Configuration() {
       override def getAppConfigurationEntry(name: String): Array[AppConfigurationEntry] = {
         val options: util.Map[String, String] = new util.HashMap[String, String]
@@ -185,7 +197,11 @@ object KrbUtil {
         options.put("doNotPrompt", "true")
         options.put("useKeyTab", "true")
         options.put("storeKey", "true")
-        options.put("isInitiator", "false")
+        options.put("isInitiator", "true")
+        cache.foreach{ticketCache =>
+          options.put("useTicketCache", "true")
+          options.put("ticketCache", ticketCache)
+        }
         Array[AppConfigurationEntry](new AppConfigurationEntry("com.sun.security.auth.module.Krb5LoginModule", AppConfigurationEntry.LoginModuleControlFlag.REQUIRED, options))
       }
     }

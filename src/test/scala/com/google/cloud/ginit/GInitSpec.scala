@@ -9,12 +9,13 @@ import com.google.auth.oauth2.GInitUtil
 import com.google.cloud.ginit.Config.Krb
 import com.google.cloud.hadoop.gcsio.{GoogleCloudStorageImpl, GoogleCloudStorageOptions, StorageResourceId}
 import com.google.cloud.hadoop.util.{AccessTokenProviderClassFromConfigFactory, CredentialFromAccessTokenProviderClassFactory}
-import com.google.cloud.storage.StorageOptions
+import com.google.cloud.storage.{EncryptedStorage, StorageOptions}
 import com.google.common.base.Charsets
 import com.google.common.hash.Hashing
-import com.google.crypto.tink.KeysetHandle
+import com.google.crypto.tink.{GcpKms, KeysetHandle}
 import com.google.crypto.tink.aead.AeadConfig
 import com.google.crypto.tink.streamingaead.{StreamingAeadConfig, StreamingAeadFactory}
+import com.google.hadoop.util.{AccessTokenProviderUtil, EncryptedStorageAccessTokenProvider, KrbAccessTokenProvider}
 import org.apache.hadoop.conf.Configuration
 import org.scalatest.{BeforeAndAfterAll, FlatSpec}
 

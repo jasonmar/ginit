@@ -14,9 +14,8 @@
  *    limitations under the License.
  */
 
-package com.google.cloud.ginit
+package com.google.cloud.storage
 
-import com.google.cloud.storage.Blob
 import com.google.common.collect.ImmutableMap
 import com.google.common.io.BaseEncoding
 

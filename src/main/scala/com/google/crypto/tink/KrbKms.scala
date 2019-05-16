@@ -14,42 +14,39 @@
  *    limitations under the License.
  */
 
-package com.google.cloud.ginit
+package com.google.crypto.tink
 
 import java.io.ByteArrayOutputStream
 
-import com.google.api.client.googleapis.auth.oauth2.GoogleCredential
-import com.google.api.client.googleapis.util.Utils
-import com.google.api.services.cloudkms.v1.CloudKMS
-import com.google.crypto.tink.integration.gcpkms.GcpKmsAead
+import com.google.cloud.ginit.KrbUtil
 import com.google.crypto.tink.proto.KeyTemplate
-import com.google.crypto.tink.{Aead, JsonKeysetReader, JsonKeysetWriter, KeysetHandle}
 
-object GcpKms {
-  def apply(): GcpKms = {
-    val cred = GoogleCredential.getApplicationDefault
-    val cloudKms = new CloudKMS.Builder(Utils.getDefaultTransport, Utils.getDefaultJsonFactory, cred)
-      .setApplicationName("ginit-0.1")
-      .build()
-    new GcpKms(cloudKms)
-  }
-}
-
-class GcpKms(kms: CloudKMS) {
+/** Generates a new Secret Key and encrypts with with KMS
+  *
+  * @param principal
+  * @param keyTabPath
+  */
+class KrbKms(principal: String, keyTabPath: String) {
   val id: String = "gcp-kms"
+  private val masterKey: Aead = KrbUtil.aeadFromKeyTab(keyTabPath, principal)
 
+  /** Generates a new Secret Key and JSON representation
+    *
+    * @param cryptoKeyUri KMS Crypto Key ID
+    * @param keyTemplate Tink KeyTemplate
+    * @return tuple of keysetHandle for immediate use
+    *         and JSON to be stored in blob metadata
+    */
   def generateNew(cryptoKeyUri: String, keyTemplate: KeyTemplate): (KeysetHandle, String) = {
     val keysetHandle = KeysetHandle.generateNew(keyTemplate)
-    val masterKey: Aead = new GcpKmsAead(kms, cryptoKeyUri)
     val os = new ByteArrayOutputStream()
     val writer = JsonKeysetWriter.withOutputStream(os)
     keysetHandle.write(writer, masterKey)
-    val json = Util.utf8(os.toByteArray)
+    val json = com.google.cloud.ginit.Util.utf8(os.toByteArray)
     (keysetHandle, json)
   }
 
   def read(json: String, cryptoKeyUri: String): KeysetHandle = {
-    val masterKey: Aead = new GcpKmsAead(kms, cryptoKeyUri)
     val reader = JsonKeysetReader.withString(json)
     KeysetHandle.read(reader, masterKey)
   }

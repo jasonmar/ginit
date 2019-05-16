@@ -14,9 +14,9 @@
  *    limitations under the License.
  */
 
-package com.google.cloud.ginit
+package com.google.crypto.tink
 
-import com.google.crypto.tink.KeysetReader
+import com.google.cloud.ginit.KrbUtil
 import com.google.crypto.tink.aead.AeadKeyTemplates
 import com.google.crypto.tink.proto._
 import com.google.protobuf.ByteString

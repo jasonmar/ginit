@@ -14,11 +14,12 @@
  *    limitations under the License.
  */
 
-package com.google.cloud.ginit
+package com.google.cloud.storage
 
 import java.nio.channels.ReadableByteChannel
 
-import com.google.cloud.storage.{BlobId, BlobInfo, Storage, StorageOptions}
+import com.google.cloud.ginit.Util
+import com.google.crypto.tink.GcpKms
 import com.google.crypto.tink.aead.AeadConfig
 import com.google.crypto.tink.proto.KeyTemplate
 import com.google.crypto.tink.streamingaead.{StreamingAeadConfig, StreamingAeadFactory, StreamingAeadKeyTemplates}

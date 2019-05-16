@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package com.google.cloud.ginit
+package com.google.hadoop.util
 
 import com.google.auth.oauth2.GInitUtil
 import com.google.cloud.hadoop.util.AccessTokenProvider

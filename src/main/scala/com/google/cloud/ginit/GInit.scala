@@ -22,8 +22,10 @@ import java.nio.file.Paths
 
 import com.google.auth.oauth2.GInitUtil
 import com.google.cloud.ginit.Config.{Kms, Krb}
-import com.google.cloud.storage.StorageOptions
+import com.google.cloud.storage.{EncryptedStorage, StorageOptions}
 import com.google.common.base.Charsets
+import com.google.crypto.tink.GcpKms
+import com.google.hadoop.util.{EncryptedStorageAccessTokenProvider, KrbAccessTokenProvider}
 import org.apache.hadoop.conf.Configuration
 
 object GInit {

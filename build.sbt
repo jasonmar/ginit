@@ -19,6 +19,8 @@ libraryDependencies ++= Seq(
   "com.google.cloud" % "google-cloud-storage" % "1.71.0",
   "com.google.cloud" % "google-cloud-kms" % "0.81.0-beta",
   "com.google.cloud.bigdataoss" % "gcs-connector" % "hadoop2-1.9.16" excludeAll exlog4j,
+  "org.apache.spark" %% "spark-core" % "2.4.3",
+  "org.apache.spark" %% "spark-sql" % "2.4.3",
   "org.apache.hadoop" % "hadoop-common" % "2.9.2",
   "org.apache.commons" % "commons-configuration2" % "2.4",
   "org.slf4j" % "slf4j-api" % "1.7.26",
